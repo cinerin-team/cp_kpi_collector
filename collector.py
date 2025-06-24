@@ -23,7 +23,7 @@ for line in lines:
         continue
 
     # Új CP kezdete, ami egy hosszú sor (és a sor első szava a CP neve)
-    if line and not line.startswith(("TC")):
+    if line and not line.startswith((" TC")):
         # A CP neve az első szó
         cp_name = line.split()[0]
 
@@ -35,10 +35,10 @@ for line in lines:
         if m:
             kpi = m.group(1).strip()
             actual_value = m.group(2).strip()
-            result = "PASS" if m.group(3) == "inbetween" else "FAIL"
-            range_min = m.group(4).strip()
-            range_max = m.group(5).strip()
-            results.append([cp_name, kpi, actual_value, result, range_min, range_max])
+            range_min = float(m.group(4).strip())
+            range_max = float(m.group(5).strip())
+            result = "PASS" if range_min<=actual_value<=range_max else "FAIL"
+            results.append([cp_name, kpi, actual_value, result, str(range_min), str(range_max)])
 
 # Írás CSV-be
 with open(output_file, "w", newline='', encoding='utf-8') as f:
