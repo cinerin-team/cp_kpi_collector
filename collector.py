@@ -23,7 +23,7 @@ for line in lines:
         continue
 
     # Új CP kezdete, ami egy hosszú sor (és a sor első szava a CP neve)
-    if line and not line.startswith(("reporting_", "status-detail_", "AND")):
+    if line and not line.startswith(("TC")):
         # A CP neve az első szó
         cp_name = line.split()[0]
 
