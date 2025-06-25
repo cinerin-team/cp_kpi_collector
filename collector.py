@@ -9,7 +9,7 @@ with open(input_file, encoding='utf-8') as f:
 results = process(lines)
 
 with open(output_file, "w", newline='', encoding='utf-8') as f:
-    writer = csv.writer(f, delimiter=';')
+    writer = csv.writer(f)
     writer.writerow(["Build", "CP", "KPI", "Actual value", "Result", "Range min", "Range max"])
     writer.writerows(results)
 
