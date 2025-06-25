@@ -1,9 +1,9 @@
 import csv
 
-from configs import input_file, output_file
+from configs import log_folder, output_file
 from functions import process
 
-with open(input_file, encoding='utf-8') as f:
+with open(log_folder + "/verdict.log", encoding='utf-8') as f:
     lines = f.readlines()
 
 results = process(lines)
