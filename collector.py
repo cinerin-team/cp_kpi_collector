@@ -4,9 +4,7 @@ import csv
 input_file = 'input.txt'
 output_file = 'output.csv'
 
-# Flag: csak a "Testcases (None)" után kezdünk dolgozni
 start_parsing = False
-
 results = []
 
 with open(input_file, encoding='utf-8') as f:
@@ -14,33 +12,44 @@ with open(input_file, encoding='utf-8') as f:
 
 cp_name = None
 
+def extract_kpi_entries(line, cp_name):
+    # Több KPI is lehet egy sorban, vesszővel vagy "AND"-del elválasztva
+    entries = []
+    # Minden KPI-mintát kigyűjtünk a sorból
+    # Példa regex: reporting_ebm_60m_...([érték]) inbetween 11 and 22
+    # vagy ... not inbetween ...
+    for m in re.finditer(r"([^\(]+)\(\[([^\]]+)\]\)\s+(inbetween|not inbetween)\s+([-\d.]+)\s+and\s+([-\d.]+)", line):
+        kpi = m.group(1).strip()
+        actual_value = m.group(2).strip()
+        # Eredményt most a value és a tartomány alapján számoljuk:
+        try:
+            val = float(actual_value)
+            minval = float(m.group(4))
+            maxval = float(m.group(5))
+            result = "PASS" if minval <= val <= maxval else "FAIL"
+        except Exception:
+            result = "FAIL"
+        range_min = m.group(4).strip()
+        range_max = m.group(5).strip()
+        entries.append([cp_name, kpi, actual_value, result, range_min, range_max])
+    return entries
+
 for line in lines:
     line = line.strip()
-    # Addig keresünk, amíg meg nem találjuk a start kulcssort
     if not start_parsing:
         if line.startswith("Testcases (None)"):
             start_parsing = True
         continue
 
-    # Új CP kezdete, ami egy hosszú sor (és a sor első szava a CP neve)
-    if line and not line.startswith((" TC")):
-        # A CP neve az első szó
+    # Csak olyan sor, amely " TC"-vel kezdődik, lehet CP (figyelj a szóközre!)
+    if line.startswith("TC"):
         cp_name = line.split()[0]
+        # Ebben a sorban lehetnek KPI-k is:
+        results.extend(extract_kpi_entries(line, cp_name))
+    elif cp_name:
+        # Egyéb KPI sorok:
+        results.extend(extract_kpi_entries(line, cp_name))
 
-    # KPI sorokat keresünk - csak akkor, ha már van CP
-    if cp_name and (("inbetween" in line) or ("not inbetween" in line)):
-        # Regex a KPI-hoz és az adatokhoz:
-        # például: reporting_ebm_60m_ebm-server-name-1_up-ebm-stats_up-ebm-events([125842.62]) inbetween 110000 and 140000 AND
-        m = re.match(r"([^\(]+)\(\[([^\]]+)\]\)\s+(inbetween|not inbetween)\s+([-\d.]+)\s+and\s+([-\d.]+)", line)
-        if m:
-            kpi = m.group(1).strip()
-            actual_value = m.group(2).strip()
-            range_min = float(m.group(4).strip())
-            range_max = float(m.group(5).strip())
-            result = "PASS" if range_min<=actual_value<=range_max else "FAIL"
-            results.append([cp_name, kpi, actual_value, result, str(range_min), str(range_max)])
-
-# Írás CSV-be
 with open(output_file, "w", newline='', encoding='utf-8') as f:
     writer = csv.writer(f)
     writer.writerow(["CP", "KPI", "Actual value", "Result", "Range min", "Range max"])
