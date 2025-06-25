@@ -48,7 +48,7 @@ for line in lines:
         results.extend(extract_kpi_entries(line, cp_name))
 
 with open(output_file, "w", newline='', encoding='utf-8') as f:
-    writer = csv.writer(f)
+    writer = csv.writer(f, delimiter=';')
     writer.writerow(["CP", "KPI", "Actual value", "Result", "Range min", "Range max"])
     writer.writerows(results)
 
