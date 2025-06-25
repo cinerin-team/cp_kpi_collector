@@ -13,15 +13,13 @@ with open(input_file, encoding='utf-8') as f:
 cp_name = None
 
 def extract_kpi_entries(line, cp_name):
-    # Több KPI is lehet egy sorban, vesszővel vagy "AND"-del elválasztva
     entries = []
-    # Minden KPI-mintát kigyűjtünk a sorból
-    # Példa regex: reporting_ebm_60m_...([érték]) inbetween 11 and 22
-    # vagy ... not inbetween ...
-    for m in re.finditer(r"([^\(]+)\(\[([^\]]+)\]\)\s+(inbetween|not inbetween)\s+([-\d.]+)\s+and\s+([-\d.]+)", line):
-        kpi = m.group(1).strip()
+    # Az összes kpi([érték]) ... inbetween/not inbetween mintát megkeressük
+    for m in re.finditer(
+        r'([a-zA-Z0-9_]+)\(\[([^\]]+)\]\)\s+(inbetween|not inbetween)\s+([-\d.]+)\s+and\s+([-\d.]+)', line
+    ):
+        kpi = m.group(1).strip()  # csak a KPI név
         actual_value = m.group(2).strip()
-        # Eredményt most a value és a tartomány alapján számoljuk:
         try:
             val = float(actual_value)
             minval = float(m.group(4))
@@ -35,19 +33,18 @@ def extract_kpi_entries(line, cp_name):
     return entries
 
 for line in lines:
-    line = line.strip()
+    line = line.rstrip()
     if not start_parsing:
         if line.startswith("Testcases (None)"):
             start_parsing = True
         continue
 
-    # Csak olyan sor, amely " TC"-vel kezdődik, lehet CP (figyelj a szóközre!)
-    if line.startswith("TC"):
-        cp_name = line.split()[0]
-        # Ebben a sorban lehetnek KPI-k is:
+    # Szóközök eltávolítása az elejéről, hogy biztosan felismerjük a CP-t
+    stripped_line = line.lstrip()
+    if stripped_line.startswith("TC"):
+        cp_name = stripped_line.split()[0]
         results.extend(extract_kpi_entries(line, cp_name))
     elif cp_name:
-        # Egyéb KPI sorok:
         results.extend(extract_kpi_entries(line, cp_name))
 
 with open(output_file, "w", newline='', encoding='utf-8') as f:
