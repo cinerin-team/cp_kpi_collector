@@ -16,7 +16,7 @@ def extract_kpi_entries(line, cp_name):
     entries = []
     # Az összes kpi([érték]) ... inbetween/not inbetween mintát megkeressük
     for m in re.finditer(
-        r'([a-zA-Z0-9_]+)\(\[([^\]]+)\]\)\s+(inbetween|not inbetween)\s+([-\d.]+)\s+and\s+([-\d.]+)', line
+        r'([a-zA-Z0-9_-]+)\(\[([^\]]+)\]\)\s+(inbetween|not inbetween)\s+([-\d.]+)\s+and\s+([-\d.]+)', line
     ):
         kpi = m.group(1).strip()  # csak a KPI név
         actual_value = m.group(2).strip()
