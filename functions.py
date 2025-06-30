@@ -21,12 +21,15 @@ def extract_kpi_entries(line, cp_name, build):
         entries.append([build, cp_name, kpi, actual_value, result, range_min, range_max])
     return entries
 
-def process(input_string):
+def process(log_folder):
+    with open(log_folder + "/verdict.log", encoding='utf-8') as f:
+        lines = f.readlines()
+
     start_parsing = False
     results = []
     cp_name = None
 
-    for line in input_string:
+    for line in lines:
         line = line.rstrip()
         if not start_parsing:
             for m in re.finditer(
