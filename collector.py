@@ -13,7 +13,7 @@ output_file = config['files']['output_file']
 
 results = []
 
-log_folders = [d.strip() for d in config['files']['log_folder'].split(',')]
+log_folders = [d.strip() for d in config['files']['log_folder'].splitlines() if d.strip()]
 for log_folder in log_folders:
     results = results + process(log_folder)
 
